@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title>React component lifecycle</title>
+  <script src="react.min.js"></script>
+  <script src="react-dom.min.js"></script>
+  <script src="browser.min.js"></script>
+  <style>
+    .title {
+      font-size: 30px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .comp,
+    .ok,
+    .item, 
+    .info {
+      width: 400px;
+      padding: 15px;
+      margin: 5px auto;
+      display: block;
+      text-align: center;
+    }
+    .arrow {
+      width: 400px;
+      margin: 5px auto;
+      display: block;
+      font-size: 30px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .comp,
+    .ok  {
+      background-color: #B1FFB1;
+      border: 1px solid #00FF00;
+      box-shadow: 10px 10px 10px #B1FFB1;
+    }  
+    .item {
+      background-color: #FFB1B1;
+      border: 1px solid #FF0000;
+      box-shadow: 10px 10px 10px #FFB1B1;
+    }
+    .info {
+      background-color: #B1B1FF;
+      border: 1px solid #0000FF;
+      box-shadow: 10px 10px 10px #B1B1FF;
+    }
+    .menu {
+      text-align: center;
+    }
+    .menu button {
+      width: 220px;
+      background-color: #E1E1E1;
+      border: 1px solid #CCCCCC;
+      box-shadow: 10px 10px 10px #E1E1E1;
+      padding: 15px;
+      margin: 15px;
+      cursor: pointer;
+    }
+    .menu button:hover {
+      border: 1px dashed #FF0000;
+      box-shadow: 10px 10px 10px #C1C1C1 inset;
+    }
+  </style>
+ </head>
+ <body>
+  
+  <div class="title">React component lifecycle</div>
+  <div id="REACT-VERSION"></div>
+  <div id="ES5">
+    <div id="ES5-REACT-MOUNT"></div>
+    <div id="ES5-REACT-UNMOUNT"></div>
+    <div id="ES5-REACT-CHAIN"></div>
+  </div>
+  <div id="ES6">
+    <div id="ES6-REACT-MOUNT"></div>
+    <div id="ES6-REACT-UNMOUNT"></div>
+    <div id="ES6-REACT-CHAIN"></div>
+  </div>
+  <br/>
+  
+  <script type="text/babel">
+
+  // ----------------------------------------------------------------------------------------------------------------------
+  // GLOBALS
+  // ----------------------------------------------------------------------------------------------------------------------  
+    
+  var chain = { 
+      ES5: "",
+      ES6: ""
+    };
+  
+  var arrow = '<div class="arrow"> &#8595; </div>';
+  
+  // ----------------------------------------------------------------------------------------------------------------------
+  // myLib
+  // ----------------------------------------------------------------------------------------------------------------------  
+  
+  var myLib = {
+
+    update: function (version, out) {
+      chain[version] += arrow;
+      chain[version] += '<div class="item">'+out+'</div>';
+      document.getElementById(version+'-REACT-CHAIN').innerHTML = chain[version];
+    },
+    
+    success: function (version) {
+      chain[version] += arrow;
+      chain[version] += '<div class="ok">Success, Component updated.</div>';
+      document.getElementById(version+'-REACT-CHAIN').innerHTML = chain[version];
+    },
+    
+    reset: function (version) {
+      chain[version] = "";
+      chain[version] += arrow;
+      chain[version] += '<div class="info">nothing happened, surprised?</div>';
+      document.getElementById(version+'-REACT-CHAIN').innerHTML = chain[version];
+      chain[version] = "";
+    },
+    
+    info: function (version, type) {
+      var out = "";
+      if (type==="should") {
+        out += 'Stopped, surprised? If you have defined <code>shouldComponentUpdate()</code> method in your React component, ';
+        out += 'it has to return <b>true</b> to proceed and update component. Click on <code>shouldComponentUpdate()</code> ';
+        out += 'button to change it.';
+      } else if (type==="mutate") {
+        out += 'Nothing happened, surprised? Mutation not trigger update component automatically. You have to call ';
+        out += '<code>forceUpdate()</code> after it.';
+      } else {
+        out = type;
+      }
+      chain[version] += arrow;
+      chain[version] += '<div class="info">'+out+'</div>';
+      document.getElementById(version+'-REACT-CHAIN').innerHTML = chain[version];
+    }
+    
+  };  
+  
+  // ----------------------------------------------------------------------------------------------------------------------
+  // ECMAScript 5 syntax
+  // ----------------------------------------------------------------------------------------------------------------------  
+    
+  var UnmountES5 = React.createClass({
+  
+    render: function () {
+      return (
+        <div>
+          <b>Click action for React component:</b>
+          <div className="menu">
+            <button onClick={this.setMount}>Mount again</button>
+          </div>
+          <b>React component status:</b>
+          <div className="comp">React component unmounted</div>
+          <b>React methods called:</b>
+        </div>
+      );
+    },
+    
+    setMount: function () {
+      myLib.reset("ES5");
+      React.unmountComponentAtNode(document.getElementById('ES5-REACT-UNMOUNT'));
+      ReactDOM.render(<CompES5 arg="mount"/>, document.getElementById('ES5-REACT-MOUNT'));
+    }
+  });
+
+  var CompES5 = React.createClass({
+  
+    getInitialState: function () {
+      myLib.update("ES5","getInitialState()");
+      return { ste: "init", should: false };
+    },
+    
+    componentWillReceiveProps: function (nextProps) {
+      myLib.update("ES5","componentWillReceiveProps()");
+    },
+    
+    componentWillMount: function () {
+      myLib.update("ES5","componentWillMount()");
+    },
+    
+    componentDidMount: function () {
+      myLib.update("ES5","componentDidMount()");
+    },
+    
+    shouldComponentUpdate: function (nextProps, nextState) {
+      myLib.update("ES5","shouldComponentUpdate()");
+      if (!this.state.should) {
+        myLib.info("ES5","should");
+      }
+      return this.state.should;
+    },
+    
+    componentWillUpdate: function (nextProps, nextState) {
+      myLib.update("ES5","componentWillUpdate()");
+    },
+    
+    componentDidUpdate: function () {
+      myLib.update("ES5","componentDidUpdate()");
+      myLib.success("ES5");
+    },
+    
+    componentWillUnmount: function () {
+      ReactDOM.render(<UnmountES5/>, document.getElementById('ES5-REACT-UNMOUNT'));
+      myLib.update("ES5","componentWillUnmount()");
+    },
+    
+    render: function () {
+      myLib.update("ES5","render()");
+      return (
+        <div>
+          <b>Click action for React component:</b>
+          <div className="menu">
+            <button onClick={this.myAction1}>this.props.arg="value"</button>
+            <button onClick={this.myAction2}>setProps()</button>
+            <button onClick={this.myAction3}>send new props</button>
+            <button onClick={this.myAction4}>this.state.ste="value"</button>
+            <button onClick={this.myAction5}>setState()</button>
+            <button onClick={this.myAction6}>forceUpdate()</button>
+            <button onClick={this.myAction7}>render()</button>
+            <button onClick={this.myAction8}>shouldComponentUpdate()</button>
+            <button onClick={this.myAction9}>Unmount</button>
+          </div>
+          <b>React component status:</b>
+          <div className="comp">
+            this.props.arg: <b>{this.props.arg}</b>,
+            this.state.ste: <b>{this.state.ste}</b>, <br/>
+            shouldComponentUpdate() return: <b>{this.state.should.toString()}</b>
+          </div>
+          <b>React methods called:</b>
+        </div>
+      );
+    },
+    
+    myAction1: function () {
+      myLib.reset("ES5");
+      this.props.arg = "value";
+      myLib.info("ES5","mutate");
+    },
+    
+    myAction2: function () {
+      myLib.reset("ES5");
+      this.setProps({arg: "setProps"});
+    },
+    
+    myAction3: function () {
+      myLib.reset("ES5");
+      ReactDOM.render(<CompES5 arg="sent"/>, document.getElementById('ES5-REACT-MOUNT'));
+    },
+    
+    myAction4: function () {
+      myLib.reset("ES5");
+      this.state.ste = "value";
+      myLib.info("ES5","mutate");
+    },
+    
+    myAction5: function () {
+      myLib.reset("ES5");
+      this.setState({ste: "setState"});
+    },
+    
+    myAction6: function () {
+      myLib.reset("ES5");
+      this.forceUpdate();
+    },
+    
+    myAction7: function () {
+      myLib.reset("ES5");
+      this.render();
+    },
+    
+    myAction8: function () {
+      myLib.reset("ES5");
+      this.state.should = !this.state.should;
+      this.forceUpdate();
+    },
+    
+    myAction9: function () {
+      myLib.reset("ES5");
+      React.unmountComponentAtNode(document.getElementById('ES5-REACT-MOUNT'));
+    }
+  });
+
+  // ----------------------------------------------------------------------------------------------------------------------
+  // ECMAScript 6 syntax
+  // ----------------------------------------------------------------------------------------------------------------------  
+
+  class UnmountES6 extends React.Component {
+  
+    render() {
+      return (
+        <div>
+          <b>Click action for React component:</b>
+          <div className="menu">
+            <button onClick={this.setMount}>Mount again</button>
+          </div>
+          <b>React component status:</b>
+          <div className="comp">React component unmounted</div>
+          <b>React methods called:</b>
+        </div>
+      );
+    }
+    
+    setMount() {
+      myLib.reset("ES6");
+      React.unmountComponentAtNode(document.getElementById('ES6-REACT-UNMOUNT'));
+      ReactDOM.render(<CompES6 arg="mount"/>, document.getElementById('ES6-REACT-MOUNT'));
+    }
+  }
+
+  class CompES6 extends React.Component {
+  
+    constructor(props) {
+      myLib.update("ES6","constructor()");
+    
+      super(props);
+    
+      // states
+      this.state = { ste: "init", should: false };
+    
+      // binding
+      this.myAction3 = this.myAction3.bind(this);
+      this.myAction5 = this.myAction5.bind(this);
+      this.myAction4 = this.myAction4.bind(this);
+      this.myAction2 = this.myAction2.bind(this);
+      this.myAction1 = this.myAction1.bind(this);
+      this.myAction6 = this.myAction6.bind(this);
+      this.myAction7 = this.myAction7.bind(this);
+      this.myAction8 = this.myAction8.bind(this);
+      this.myAction9 = this.myAction9.bind(this);
+    }
+    
+    componentWillReceiveProps(nextProps) {
+      myLib.update("ES6","componentWillReceiveProps()");
+    }
+    
+    componentWillMount() {
+      myLib.update("ES6","componentWillMount()");
+    }
+    
+    componentDidMount() {
+      myLib.update("ES6","componentDidMount()");
+    }
+    
+    shouldComponentUpdate(nextProps, nextState) {
+      myLib.update("ES6","shouldComponentUpdate()");
+      if (!this.state.should) {
+        myLib.info("ES6","should");
+      }
+      return this.state.should;
+    }
+    
+    componentWillUpdate(nextProps, nextState) {
+      myLib.update("ES6","componentWillUpdate()");
+    }
+    
+    componentDidUpdate() {
+      myLib.update("ES6","componentDidUpdate()");
+      myLib.success("ES6");
+    }
+    
+    componentWillUnmount() {
+      ReactDOM.render(<UnmountES6/>, document.getElementById('ES6-REACT-UNMOUNT'));
+      myLib.update("ES6","componentWillUnmount()");
+    }
+    
+    render() {
+      myLib.update("ES6","render()");
+      return (
+        <div>
+          <b>Click action for React component:</b>
+          <div className="menu">
+            <button onClick={this.myAction0}>getDefaultProps</button>
+            <button onClick={this.myAction1}>this.props.arg="value"</button>
+            <button onClick={this.myAction2}>setProps()</button>
+            <button onClick={this.myAction3}>send new props</button>
+            <button onClick={this.myAction4}>this.state.ste="value"</button>
+            <button onClick={this.myAction5}>setState()</button>
+            <button onClick={this.myAction6}>forceUpdate()</button>
+            <button onClick={this.myAction7}>render()</button>
+            <button onClick={this.myAction8}>shouldComponentUpdate()</button>
+            <button onClick={this.myAction9}>Unmount</button>
+          </div>
+          <b>React component status:</b>
+          <div className="comp">
+            defaultProp: <b>{this.props.defaultProp || "N/A"}</b>, <br/>
+            this.props.arg: <b>{this.props.arg || "N/A"}</b>,
+            this.state.ste: <b>{this.state.ste}</b>, <br/>
+            shouldComponentUpdate() return: <b>{this.state.should.toString()}</b>
+          </div>
+          <b>React methods called:</b>
+        </div>
+      )
+    }
+    
+    // no auto-bind
+    
+    myAction0() {
+      myLib.reset("ES6");
+      ReactDOM.render(<CompES6/>, document.getElementById('ES6-REACT-MOUNT'));
+    }
+    
+    myAction1() {
+      myLib.reset("ES6");
+      this.props.arg = "value";
+      myLib.info("ES6","mutate");
+    }
+    
+    myAction2() {
+      myLib.reset("ES6");
+      myLib.info("ES6","This method is deprecated and is not available on ES6 class components that extend React.Component.");
+    }
+    
+    myAction3() {
+      myLib.reset("ES6");
+      ReactDOM.render(<CompES6 arg="sent"/>, document.getElementById('ES6-REACT-MOUNT'));
+    }
+    
+    myAction4() {
+      myLib.reset("ES6");
+      this.state.ste = "value";
+      myLib.info("ES6","mutate");
+    }
+    
+    myAction5() {
+      myLib.reset("ES6");
+      this.setState({ste: "setState"});
+    }
+    
+    myAction6() {
+      myLib.reset("ES6");
+      this.forceUpdate();
+    }  
+    
+    myAction7() {
+      myLib.reset("ES6");
+      this.render();
+    }
+    
+    myAction8() {
+      myLib.reset("ES6");
+      this.state.should = !this.state.should;
+      this.forceUpdate();
+    }
+    
+    myAction9() {
+      myLib.reset("ES6");
+      React.unmountComponentAtNode(document.getElementById('ES6-REACT-MOUNT'));
+    }
+  }
+
+  function x1() {
+    myLib.update("ES6",".propTypes = ");
+    return { propT1: React.PropTypes.string };
+  }
+  
+  function x2() {
+    myLib.update("ES6",".defaultProps = ");
+    return { defaultProp: "init" };
+  }
+
+  CompES6.propTypes    = x1();    
+  CompES6.defaultProps = x2();
+
+  // ----------------------------------------------------------------------------------------------------------------------
+  // REACT VERSION
+  // ----------------------------------------------------------------------------------------------------------------------
+
+  class ReactVersion extends React.Component {
+  
+    constructor(props) {
+      super(props);
+      this.state = { syntax: "" };
+      this.myAction1 = this.myAction1.bind(this);
+      this.myAction2 = this.myAction2.bind(this);
+    }
+    
+    render() {
+      return (
+        <div>
+          <center><b>{this.state.syntax}</b></center>
+          <b>Click version syntax for React component:</b>
+          <div className="menu">
+            <button onClick={this.myAction1}>ECMAScript 5 (ES5) syntax</button>
+            <button onClick={this.myAction2}>ECMAScript 6 (ES6) syntax</button>
+          </div>
+        </div>
+      )
+    }
+    
+    myAction1() {
+      this.setState({syntax: "ECMAScript 5 (ES5)"});
+      document.getElementById('ES5').style.display = "block";
+      document.getElementById('ES6').style.display = "none";
+    }
+    
+    myAction2() {
+      this.setState({syntax: "ECMAScript 6 (ES6)"});
+      document.getElementById('ES5').style.display = "none";
+      document.getElementById('ES6').style.display = "block";
+    }
+  }
+  
+  document.getElementById('ES5').style.display = "none";
+  document.getElementById('ES6').style.display = "none";
+      
+  ReactDOM.render(<CompES5 arg="init"/>, document.getElementById('ES5-REACT-MOUNT'));
+  ReactDOM.render(<CompES6 arg="init"/>, document.getElementById('ES6-REACT-MOUNT'));
+      
+  ReactDOM.render(<ReactVersion />, document.getElementById('REACT-VERSION'));
+  
+  // ----------------------------------------------------------------------------------------------------------------------
+  
+  </script>
+ </body>
+</html>
